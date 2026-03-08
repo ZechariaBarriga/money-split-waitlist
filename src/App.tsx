@@ -6,6 +6,7 @@ export default function App() {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("You're on the list! We'll be in touch.");
   const [showAboutContent, setShowAboutContent] = useState(false);
   const [displayContent, setDisplayContent] = useState<boolean | null>(false);
 
@@ -60,6 +61,7 @@ export default function App() {
       if (!supabase) throw new Error("Supabase not configured.");
       const { error } = await supabase.from("waitlist").insert({ email: trimmed });
       if (error) throw error;
+      setSuccessMessage("You're on the list! We'll be in touch.");
       setStatus("success");
       setEmail("");
     } catch (e: unknown) {
@@ -67,12 +69,24 @@ export default function App() {
         e && typeof e === "object" && "message" in e
           ? (e as { message: string }).message
           : "Something went wrong.";
-      setErrorMessage(msg);
-      setStatus("error");
+      const code = e && typeof e === "object" && "code" in e ? (e as { code: string }).code : "";
+      const isDuplicate =
+        code === "23505" ||
+        (typeof msg === "string" &&
+          (msg.includes("unique") || msg.includes("duplicate key") || msg.includes("already exists")));
+      if (isDuplicate) {
+        setSuccessMessage("You're already on the list.");
+        setStatus("success");
+        setEmail("");
+        return;
+      }
       if (typeof msg === "string" && msg.toLowerCase().includes("does not exist")) {
         setStatus("success");
         setEmail("");
+        return;
       }
+      setErrorMessage(msg);
+      setStatus("error");
     }
   }
 
@@ -120,7 +134,7 @@ export default function App() {
                   </button>
                 </form>
                 {status === "success" && (
-                  <p className="message success">You’re on the list! We’ll be in touch.</p>
+                  <p className="message success">{successMessage}</p>
                 )}
                 {status === "error" && errorMessage && (
                   <p className="message error">{errorMessage}</p>
