@@ -259,6 +259,12 @@ body {
   gap: 24px;
 }
 
+.phone-mockup-image {
+  max-width: 60%;
+  width: 100%;
+  height: auto;
+}
+
 /* Phone mockup */
 .phone-frame {
   width: 160px;
@@ -604,4 +610,68 @@ body {
 
 .footer-link:hover {
   text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+  .page {
+    min-height: auto;
+  }
+  .scroll-spacer {
+    height: 0; /* no artificial spacer on mobile */
+  }
+
+  .hero {
+    position: sticky;
+    height: auto;
+    flex-direction: column-reverse; /* phones + scroll hint on top, white card below */
+    gap: 24px;
+    padding: 24px 0;
+  }
+
+  .hero-left,
+  .hero-right {
+    
+    width: 100%;
+    align-items: center;
+    padding: 10px;
+  }
+
+  .hero-headline {
+    font-size: 24px;
+    line-height: 1.2;
+  }
+
+  .hero-subtext {
+    font-size: 14px;
+  }
+
+  .phone-mockups {
+    margin-top: 8px;
+  }
+
+  .phone-mockup-image {
+    max-width: 220px;
+  }
+
+  .about-static {
+    margin-top: 32px;
+  }
+
+  /* On mobile, make the waitlist slide part of normal flow so it doesn't overlap */
+  .content-slide {
+    position: static;
+    transform: none;
+    opacity: 1;
+    pointer-events: auto;
+    margin-bottom: 24px;
+  }
+
+  .content-slide-visible {
+    transform: none;
+    opacity: 1;
+  }
+
+  .top-nav {
+    margin-top: 5%;
+  }
 }

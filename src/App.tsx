@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "./lib/supabase";
 import "./App.css";
+import moneysplitMockup from "./assets/moneysplit.png";
 
 export default function App() {
   const [email, setEmail] = useState("");
@@ -9,13 +10,30 @@ export default function App() {
   const [successMessage, setSuccessMessage] = useState("You're on the list! We'll be in touch.");
   const [showAboutContent, setShowAboutContent] = useState(false);
   const [displayContent, setDisplayContent] = useState<boolean | null>(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   // Two thresholds so content only changes at defined scroll points (no flicker when barely scrolling)
   const SCROLL_THRESHOLD_DOWN = 0.35; // scroll down past 35% of viewport → show About Us
-  const SCROLL_THRESHOLD_UP = 0.15;   // scroll up above 15% of viewport → show Waitlist
+  const SCROLL_THRESHOLD_UP = 0.15; // scroll up above 15% of viewport → show Waitlist
+  const MOBILE_BREAKPOINT = 768;
+
+  useEffect(() => {
+    function handleResize() {
+      if (typeof window === "undefined") return;
+      setIsMobile(window.innerWidth <= MOBILE_BREAKPOINT);
+    }
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   useEffect(() => {
     function onScroll() {
+      if (isMobile) {
+        setShowAboutContent(false);
+        return;
+      }
+
       const y = window.scrollY;
       const vh = window.innerHeight;
       const thresholdDownPx = vh * SCROLL_THRESHOLD_DOWN;
@@ -31,7 +49,7 @@ export default function App() {
     window.addEventListener("scroll", onScroll, { passive: true });
     onScroll(); // set initial state
     return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+  }, [isMobile]);
 
   // When target content changes: disappear briefly (both opaque), then show new content
   useEffect(() => {
@@ -155,13 +173,12 @@ export default function App() {
                 </div>
             </div>
 
-            <div
-              className={`content-slide ${displayContent === true ? "content-slide-visible" : ""}`}
-              aria-hidden={displayContent !== true}
-            >
-              <div className="top-nav">
-                <span className="pill">About Us</span>
-              </div>
+            {/* Desktop: About Us swaps in on scroll. Mobile: static About Us below waitlist. */}
+            {isMobile ? (
+              <div className="about-static">
+                <div className="top-nav">
+                  <span className="pill">About Us</span>
+                </div>
                 <h1 className="hero-headline">About Us</h1>
                 <p className="hero-subtext">
                   We're building a simple, peso-first expense splitting app made for how Filipino
@@ -170,13 +187,34 @@ export default function App() {
                   access and help us build the app your group chat has been asking for. No spreadsheets,
                   no mental math – just fair splits.
                 </p>
-            </div>
+              </div>
+            ) : (
+              <div
+                className={`content-slide ${displayContent === true ? "content-slide-visible" : ""}`}
+                aria-hidden={displayContent !== true}
+              >
+                <div className="top-nav">
+                  <span className="pill">About Us</span>
+                </div>
+                <h1 className="hero-headline">About Us</h1>
+                <p className="hero-subtext">
+                  We're building a simple, peso-first expense splitting app made for how Filipino
+                  barkadas actually spend. Add expenses, split them equally or custom, and instantly see
+                  simplified balances so you know exactly who owes who. Join our waitlist to get early
+                  access and help us build the app your group chat has been asking for. No spreadsheets,
+                  no mental math – just fair splits.
+                </p>
+              </div>
+            )}
           </div>
         </div>
         <div className="hero-right">
           <div className="phone-mockups">
-            <PhoneMockupGroup />
-            <PhoneMockupHome />
+            <img
+              src={moneysplitMockup}
+              alt="MoneySplit app mockup"
+              className="phone-mockup-image"
+            />
           </div>
           <div className="scroll-hint-below-mockups">
             <span className="scroll-hint-icon" aria-hidden>
@@ -191,88 +229,6 @@ export default function App() {
 
       {/* Spacer so the page can scroll; scroll position (thresholds) controls content swap */}
       <div className="scroll-spacer" aria-hidden="true" />
-    </div>
-  );
-}
-
-function PhoneMockupGroup() {
-  return (
-    <div className="phone-frame">
-      <div className="phone-notch" />
-      <div className="phone-header">
-        <span className="phone-btn" />
-        <span className="phone-title">College Buddies</span>
-        <span className="phone-icon green-dot" />
-      </div>
-      <div className="phone-buttons">
-        <div className="green-btn">Invite Friends</div>
-        <div className="green-btn">Add Member</div>
-        <div className="green-btn">Add Expense</div>
-      </div>
-      <div className="phone-section">
-        <div className="section-label">Balances</div>
-        <div className="balance-row">
-          <span>Brent</span>
-          <span className="owes">Owes P400.00</span>
-        </div>
-        <div className="balance-row">
-          <span>Julian Erwan</span>
-          <span className="owed">Owed</span>
-        </div>
-      </div>
-      <div className="phone-section">
-        <div className="section-label">Settlement History</div>
-        <div className="muted">No settlements yet. Settle balances to record payments.</div>
-      </div>
-    </div>
-  );
-}
-
-function PhoneMockupHome() {
-  return (
-    <div className="phone-frame">
-      <div className="phone-notch" />
-      <div className="phone-header">
-        <span className="phone-btn" />
-        <span className="phone-title">Home</span>
-        <span className="phone-btn circle" />
-      </div>
-      <div className="balance-block">
-        <div className="balance-label">Overall Balance</div>
-        <div className="balance-amount">P400.00</div>
-        <div className="balance-sub">You are owed P400.00</div>
-      </div>
-      <div className="phone-section">
-        <div className="section-row">
-          <span className="section-label">RECENT ACTIVITY</span>
-          <span className="see-all">See all</span>
-        </div>
-        <div className="activity-row">
-          <span className="activity-title">Dinner</span>
-          <span className="activity-meta">College Buddies · just now</span>
-          <span className="activity-amount">P800.00</span>
-        </div>
-      </div>
-      <div className="phone-section">
-        <div className="section-label">MY GROUPS</div>
-        <div className="group-row">
-          <span>HS OG4</span>
-          <span className="muted">No activity yet.</span>
-        </div>
-        <div className="group-row">
-          <span>DOTA Friends</span>
-          <span className="muted">No activity yet.</span>
-        </div>
-        <div className="group-row">
-          <span>College Buddies</span>
-          <span className="green-text">P400.00</span>
-        </div>
-      </div>
-      <div className="phone-tabs">
-        <span>Groups</span>
-        <span className="tab-plus">+</span>
-        <span>Profile</span>
-      </div>
     </div>
   );
 }
